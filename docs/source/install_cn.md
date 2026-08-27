@@ -127,6 +127,23 @@ python3 -m pip install paddlepaddle-gpu==2.4.1 -i https://mirror.baidu.com/pypi/
 ```bash
 python3 -m pip install paddlepaddle-gpu==0.0.0.post102 -f https://www.paddlepaddle.org.cn/whl/linux/gpu/develop.html
 ```
+
+#### AMD Instinct GPU（ROCm）
+
+在 AMD Instinct GPU（MI300X / MI350X 及更新型号）上，PaddleSpeech 无需改动即可运行；只需将 CUDA 版的 `paddlepaddle-gpu` 换成 ROCm 版的 PaddlePaddle（发行名为 `paddlepaddle-dcu`）。所有 GPU 计算都由 `paddle.set_device('gpu')` 分发，会自动路由到 AMD GPU，代码无需修改。
+
+请从 AMD-AIOSS/hipSHIFT 的 `port/Paddle` 分支下载 wheel 并直接安装（GitHub raw 不提供 PEP 503 wheel 索引，`--find-links` 无法解析，需直接安装 wheel 文件）：
+
+```bash
+# 从 https://github.com/AMD-AIOSS/hipSHIFT/tree/port/Paddle 下载 ROCm PaddlePaddle wheel
+# （cp311，x86_64；已在 ROCm 10.1、gfx942 (MI300X) 与 gfx950 (MI350X/MI355X) 上验证）
+# 请勿安装 paddlepaddle-gpu（那是 CUDA 版）。
+python3 -m pip install paddlepaddle_dcu-3.4.0.dev20260825-cp311-cp311-linux_x86_64.whl
+python3 -c "import paddle; print(paddle.is_compiled_with_rocm(), paddle.get_device()); paddle.utils.run_check()"
+```
+
+参见 `docker/rocm/Dockerfile` 获取现成的 ROCm 镜像。
+
 ### 安装 PaddleSpeech
 最后安装 `paddlespeech`，这样你就可以使用 `paddlespeech` 中已有的 examples：
 ```bash
@@ -189,6 +206,22 @@ python3 -m pip install paddlepaddle-gpu==2.4.1 -i https://mirror.baidu.com/pypi/
 ```bash
 python3 -m pip install paddlepaddle-gpu==0.0.0.post102 -f https://www.paddlepaddle.org.cn/whl/linux/gpu/develop.html
 ```
+
+#### AMD Instinct GPU（ROCm）
+
+在 AMD Instinct GPU（MI300X / MI350X 及更新型号）上，请安装 ROCm 版的 PaddlePaddle（发行名为 `paddlepaddle-dcu`），而不是 CUDA 版的 `paddlepaddle-gpu`；本节其余步骤不变。所有 GPU 计算都由 `paddle.set_device('gpu')` 分发，会自动路由到 AMD GPU。
+
+从 AMD-AIOSS/hipSHIFT 的 `port/Paddle` 分支（https://github.com/AMD-AIOSS/hipSHIFT/tree/port/Paddle）下载 wheel 并直接安装：
+
+```bash
+# 下载 ROCm PaddlePaddle wheel（cp311，x86_64；已在 ROCm 10.1、gfx942 + gfx950 上验证），然后直接安装。
+# 请勿安装 paddlepaddle-gpu（那是 CUDA 版）。
+python3 -m pip install paddlepaddle_dcu-3.4.0.dev20260825-cp311-cp311-linux_x86_64.whl
+python3 -c "import paddle; print(paddle.is_compiled_with_rocm(), paddle.get_device()); paddle.utils.run_check()"
+```
+
+参见 `docker/rocm/Dockerfile` 获取现成的 ROCm 镜像。
+
 ### 用开发者模式安装 PaddleSpeech
 部分用户系统由于默认源的问题，安装中会出现 kaldiio 安转出错的问题，建议首先安装 pytest-runner:
 ```bash
