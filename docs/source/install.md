@@ -137,23 +137,22 @@ python3 -m pip install paddlepaddle-gpu==0.0.0.post102 -f https://www.paddlepadd
 
 #### AMD Instinct GPUs (ROCm)
 
-PaddleSpeech runs unchanged on AMD Instinct GPUs (MI300X / MI350X and newer). Only the PaddlePaddle wheel differs: install the ROCm build of PaddlePaddle **instead of** `paddlepaddle-gpu` (which is a CUDA wheel). The rest of PaddleSpeech (the CLI, the CPU feature-extraction C++ extensions, models) is identical -- all GPU compute is dispatched by PaddlePaddle via `paddle.set_device('gpu')`, which routes to the AMD GPU with no code change.
+PaddleSpeech runs on AMD Instinct GPUs through the ROCm build of PaddlePaddle. PaddleSpeech has no GPU kernels of its own, so it needs no source changes: `--device gpu` and `paddle.set_device('gpu')` run on the AMD GPU.
 
-The ROCm build of PaddlePaddle is distributed as `paddlepaddle-dcu` (a full ROCm/HIP build), not `paddlepaddle-gpu` (CUDA). Download the wheel from the AMD-AIOSS/hipSHIFT `port/Paddle` branch and install it directly (GitHub raw does not serve a PEP 503 wheel index, so `--find-links` against it will not resolve -- install the wheel file directly):
+There is no prebuilt ROCm wheel of PaddlePaddle. Build it from source by following [Building and Testing PaddlePaddle on AMD Instinct GPUs with ROCm](https://github.com/AMD-Ecosystem/Paddle/blob/rocm-enablement/VALIDATION_NOTES.md), and install the wheel it produces **instead of** `paddlepaddle-gpu`, which is a CUDA wheel. Keep the ROCm environment variables from that guide set whenever you run PaddleSpeech.
+
+Then install PaddleSpeech from the root of this repository into the same Python environment, and run a speech recognition example on the GPU:
 
 ```bash
-# 1) Get the ROCm PaddlePaddle wheel from the AMD-AIOSS/hipSHIFT port/Paddle branch:
-#    https://github.com/AMD-AIOSS/hipSHIFT/tree/port/Paddle
-#    (Python 3.11 / cp311, x86_64. It is validated on ROCm 10.1, gfx942 (MI300X) and gfx950 (MI350X/MI355X).)
+sudo apt-get install -y libsndfile1 ffmpeg
+pip install . "numpy<2" "protobuf<=3.20.2"
 
-# 2) Install the wheel directly. Do NOT install paddlepaddle-gpu (that is CUDA).
-python3 -m pip install paddlepaddle_dcu-3.4.0.dev20260825-cp311-cp311-linux_x86_64.whl
-
-# 3) Confirm PaddlePaddle sees the AMD GPU:
-python3 -c "import paddle; print(paddle.is_compiled_with_rocm(), paddle.get_device()); paddle.utils.run_check()"
+python -c "import paddle; print(paddle.device.is_compiled_with_rocm())"
+wget https://paddlespeech.bj.bcebos.com/PaddleAudio/zh.wav
+paddlespeech asr --input zh.wav --device gpu
 ```
 
-After this, every PaddleSpeech command with `--device gpu` runs on the AMD Instinct GPU. A ready-made ROCm image is provided at `docker/rocm/Dockerfile`.
+The first command prints `True`, and the last prints the transcript of the sample clip. This path was run on an AMD Instinct MI355X (`gfx950`) with ROCm 10.1.0, Ubuntu 24.04, and Python 3.12.
 
 ### Install PaddleSpeech 
 You can install  `paddlespeech`  by the following command，then you can use the `ready-made` examples in `paddlespeech` :
@@ -222,18 +221,7 @@ python3 -m pip install paddlepaddle-gpu==0.0.0.post102 -f https://www.paddlepadd
 
 #### AMD Instinct GPUs (ROCm)
 
-For AMD Instinct GPUs (MI300X / MI350X and newer), install the ROCm build of PaddlePaddle **instead of** `paddlepaddle-gpu` (which is a CUDA wheel); everything else in this section is unchanged. All GPU compute rides `paddle.set_device('gpu')`, which routes to the AMD GPU with no code change.
-
-The ROCm build is distributed as `paddlepaddle-dcu` (not `paddlepaddle-gpu`, which is CUDA). Get the wheel from the AMD-AIOSS/hipSHIFT `port/Paddle` branch (https://github.com/AMD-AIOSS/hipSHIFT/tree/port/Paddle) and install the file directly:
-
-```bash
-# Download the ROCm PaddlePaddle wheel (cp311, x86_64; validated on ROCm 10.1, gfx942 + gfx950),
-# then install it directly. Do NOT install paddlepaddle-gpu (that is CUDA).
-python3 -m pip install paddlepaddle_dcu-3.4.0.dev20260825-cp311-cp311-linux_x86_64.whl
-python3 -c "import paddle; print(paddle.is_compiled_with_rocm(), paddle.get_device()); paddle.utils.run_check()"
-```
-
-See `docker/rocm/Dockerfile` for a ready-made ROCm image.
+For AMD Instinct GPUs, install the ROCm build of PaddlePaddle **instead of** `paddlepaddle-gpu`, which is a CUDA wheel. Follow [AMD Instinct GPUs (ROCm)](#amd-instinct-gpus-rocm) in the Medium section above. The other steps in this section are unchanged.
 
 ### Install PaddleSpeech in Developing Mode
 Some users may fail to install `kaldiio` due to the default download source, you can install `pytest-runner` at first:

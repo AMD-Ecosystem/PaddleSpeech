@@ -130,19 +130,22 @@ python3 -m pip install paddlepaddle-gpu==0.0.0.post102 -f https://www.paddlepadd
 
 #### AMD Instinct GPU（ROCm）
 
-在 AMD Instinct GPU（MI300X / MI350X 及更新型号）上，PaddleSpeech 无需改动即可运行；只需将 CUDA 版的 `paddlepaddle-gpu` 换成 ROCm 版的 PaddlePaddle（发行名为 `paddlepaddle-dcu`）。所有 GPU 计算都由 `paddle.set_device('gpu')` 分发，会自动路由到 AMD GPU，代码无需修改。
+PaddleSpeech 通过 ROCm 版 PaddlePaddle 在 AMD Instinct GPU 上运行。PaddleSpeech 自身不包含 GPU 内核，因此无需修改源码：`--device gpu` 与 `paddle.set_device('gpu')` 会在 AMD GPU 上执行。
 
-请从 AMD-AIOSS/hipSHIFT 的 `port/Paddle` 分支下载 wheel 并直接安装（GitHub raw 不提供 PEP 503 wheel 索引，`--find-links` 无法解析，需直接安装 wheel 文件）：
+ROCm 版 PaddlePaddle 没有预编译的 wheel。请按照 [Building and Testing PaddlePaddle on AMD Instinct GPUs with ROCm](https://github.com/AMD-Ecosystem/Paddle/blob/rocm-enablement/VALIDATION_NOTES.md) 从源码编译，并安装编译得到的 wheel，**不要**安装 `paddlepaddle-gpu`（那是 CUDA 版）。运行 PaddleSpeech 时请保留该指南中设置的 ROCm 环境变量。
+
+然后在同一个 Python 环境中，从本仓库根目录安装 PaddleSpeech，并在 GPU 上运行语音识别示例：
 
 ```bash
-# 从 https://github.com/AMD-AIOSS/hipSHIFT/tree/port/Paddle 下载 ROCm PaddlePaddle wheel
-# （cp311，x86_64；已在 ROCm 10.1、gfx942 (MI300X) 与 gfx950 (MI350X/MI355X) 上验证）
-# 请勿安装 paddlepaddle-gpu（那是 CUDA 版）。
-python3 -m pip install paddlepaddle_dcu-3.4.0.dev20260825-cp311-cp311-linux_x86_64.whl
-python3 -c "import paddle; print(paddle.is_compiled_with_rocm(), paddle.get_device()); paddle.utils.run_check()"
+sudo apt-get install -y libsndfile1 ffmpeg
+pip install . "numpy<2" "protobuf<=3.20.2"
+
+python -c "import paddle; print(paddle.device.is_compiled_with_rocm())"
+wget https://paddlespeech.bj.bcebos.com/PaddleAudio/zh.wav
+paddlespeech asr --input zh.wav --device gpu
 ```
 
-参见 `docker/rocm/Dockerfile` 获取现成的 ROCm 镜像。
+第一条命令输出 `True`，最后一条命令输出示例音频的识别文本。以上步骤已在 AMD Instinct MI355X（`gfx950`）、ROCm 10.1.0、Ubuntu 24.04、Python 3.12 上运行通过。
 
 ### 安装 PaddleSpeech
 最后安装 `paddlespeech`，这样你就可以使用 `paddlespeech` 中已有的 examples：
@@ -209,18 +212,7 @@ python3 -m pip install paddlepaddle-gpu==0.0.0.post102 -f https://www.paddlepadd
 
 #### AMD Instinct GPU（ROCm）
 
-在 AMD Instinct GPU（MI300X / MI350X 及更新型号）上，请安装 ROCm 版的 PaddlePaddle（发行名为 `paddlepaddle-dcu`），而不是 CUDA 版的 `paddlepaddle-gpu`；本节其余步骤不变。所有 GPU 计算都由 `paddle.set_device('gpu')` 分发，会自动路由到 AMD GPU。
-
-从 AMD-AIOSS/hipSHIFT 的 `port/Paddle` 分支（https://github.com/AMD-AIOSS/hipSHIFT/tree/port/Paddle）下载 wheel 并直接安装：
-
-```bash
-# 下载 ROCm PaddlePaddle wheel（cp311，x86_64；已在 ROCm 10.1、gfx942 + gfx950 上验证），然后直接安装。
-# 请勿安装 paddlepaddle-gpu（那是 CUDA 版）。
-python3 -m pip install paddlepaddle_dcu-3.4.0.dev20260825-cp311-cp311-linux_x86_64.whl
-python3 -c "import paddle; print(paddle.is_compiled_with_rocm(), paddle.get_device()); paddle.utils.run_check()"
-```
-
-参见 `docker/rocm/Dockerfile` 获取现成的 ROCm 镜像。
+在 AMD Instinct GPU 上，请安装 ROCm 版 PaddlePaddle，**不要**安装 `paddlepaddle-gpu`（那是 CUDA 版）。具体步骤见上文“中等”部分的 AMD Instinct GPU（ROCm）一节，本节其余步骤不变。
 
 ### 用开发者模式安装 PaddleSpeech
 部分用户系统由于默认源的问题，安装中会出现 kaldiio 安转出错的问题，建议首先安装 pytest-runner:

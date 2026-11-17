@@ -253,7 +253,7 @@ pip install paddlepaddle==2.4.1 -i https://mirror.baidu.com/pypi/simple
 pip install paddlepaddle==0.0.0 -f https://www.paddlepaddle.org.cn/whl/linux/cpu-mkl/develop.html
 ```
 
-**AMD Instinct GPUs (ROCm):** PaddleSpeech runs unchanged on AMD Instinct GPUs (MI300X / MI350X and newer). Install the ROCm build of PaddlePaddle instead of `paddlepaddle-gpu` (which is a CUDA wheel); all GPU compute rides `paddle.set_device('gpu')` and routes to the AMD GPU with no code change. A ready-made ROCm image is provided at [`docker/rocm/Dockerfile`](./docker/rocm/Dockerfile); see the [installation document](./docs/source/install.md) for details.
+**AMD Instinct GPUs (ROCm):** PaddleSpeech runs on AMD Instinct GPUs through the ROCm build of PaddlePaddle, with no PaddleSpeech source changes. See [AMD Instinct GPUs (ROCm)](./docs/source/install.md#amd-instinct-gpus-rocm) in the installation document for the build and install steps.
 
 There are two quick installation methods for PaddleSpeech, one is pip installation, and the other is source code compilation (recommended).
 ### pip install
